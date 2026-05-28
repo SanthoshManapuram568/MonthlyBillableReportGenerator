@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Monthly Billable Report</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+  <style>
+
+    body{
+      background:#eef2f7;
+      padding:20px;
+      font-family:Calibri, Arial, sans-serif;
+    }
+
+    .main-card{
+      background:white;
+      border-radius:18px;
+      padding:25px;
+      box-shadow:0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .title{
+      font-size:28px;
+      font-weight:700;
+      color:#0d6efd;
+    }
+
+    .sub-title{
+      color:#6c757d;
+      font-size:14px;
+    }
+
+    .section-box{
+      background:#fafbfd;
+      border:1px solid #e3e6ea;
+      border-radius:14px;
+      padding:18px;
+      margin-top:20px;
+    }
+
+    .section-title{
+      font-size:18px;
+      font-weight:600;
+      color:#343a40;
+    }
+
+    .section-header{
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .collapse-arrow{
+      font-size:18px;
+      transition:0.3s;
+    }
+
+    .collapsed-arrow{
+      transform:rotate(-90deg);
+    }
+
+    .section-content{
+      transition:0.3s ease;
+    }
+
+    .week-card{
+      background:white;
+      border:1px solid #dee2e6;
+      border-radius:12px;
+      padding:15px;
+      margin-bottom:12px;
+      transition:0.2s;
+    }
+
+    .week-card:hover{
+      box-shadow:0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    .week-badge{
+      background:#0d6efd;
+      color:white;
+      border-radius:20px;
+      padding:4px 10px;
+      font-size:12px;
+      font-weight:600;
+    }
+
+    .date-range{
+      font-size:13px;
+      color:#6c757d;
+      font-weight:500;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse !important;
+      margin-top:25px;
+    }
+
+    table td,
+    table th{
+      border:1px solid black !important;
+      padding:6px;
+      font-size:14px;
+      vertical-align:middle;
+    }
+
+    table th{
+      background:#ececec !important;
+      text-align:center;
+      font-weight:600;
+    }
+
+    .copy-btn{
+      border-radius:10px;
+      padding:10px 18px;
+      font-weight:600;
+    }
+
+    .hidden{
+      display:none;
+    }
+
+    .table-wrapper{
+      overflow-x:auto;
+    }
+
+    /* MOBILE BUTTON FIX */
+
+    .button-container button{
+      flex:1;
+    }
+
+    /* DESKTOP */
+
+    @media(min-width:992px){
+
+      .button-container{
+        width:auto !important;
+      }
+
+      .button-container button{
+        flex:none;
+        min-width:140px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+  <div class="main-card">
+
+    <!-- HEADER -->
+
+    <div class="d-flex flex-column flex-lg-row
+                justify-content-between
+                align-items-start align-items-lg-center
+                gap-3
+                mb-4">
+
+      <!-- LEFT -->
+
+      <div>
+
+        <div class="title"
+             id="monthTitle">
+        </div>
+
+        <div class="sub-title">
+		  An <b>SRM Internal Site</b> for auto generating monthly billable report<br>
+		  Developed by <a href="https://santhoshmanapuram.netlify.app/" target="_blank">Santhosh Kumar Manapuram</a>
+        </div>
+
+      </div>
+
+      <!-- BUTTONS -->
+
+      <div class="d-flex
+                  flex-row
+                  gap-2
+                  w-100
+                  w-lg-auto
+                  button-container">
+
+        <button class="btn btn-primary copy-btn"
+                onclick="copyTableToExcel()">
+
+          Copy Table
+
+        </button>
+
+        <button class="btn btn-success copy-btn"
+                onclick="sendEmail()">
+
+          Copy Mail Body
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- HOLIDAY SECTION -->
+
+    <div class="section-box">
+
+      <div class="d-flex
+                  justify-content-between
+                  align-items-center
+                  section-header"
+           onclick="toggleSection('holidayContent','holidayArrow')">
+
+        <div class="section-title">
+          Holidays
+        </div>
+
+        <div class="collapse-arrow"
+             id="holidayArrow">
+
+          ▼
+
+        </div>
+
+      </div>
+
+      <div id="holidayContent"
+           class="section-content">
+
+        <div class="form-check mb-3 mt-3">
+
+          <input class="form-check-input"
+                 type="checkbox"
+                 id="holidayCheckbox">
+
+          <label class="form-check-label">
+            Are there any holidays this month?
+          </label>
+
+        </div>
+
+        <div id="holidayContainer"
+             class="hidden">
+
+          <div class="row">
+
+            <div class="col-md-4">
+
+              <label class="form-label">
+                Number of Holiday Days
+              </label>
+
+              <input type="number"
+                     min="0"
+                     value="0"
+                     id="holidayDays"
+                     class="form-control">
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- LEAVE SECTION -->
+
+    <div class="section-box">
+
+      <div class="d-flex
+                  justify-content-between
+                  align-items-center
+                  section-header"
+           onclick="toggleSection('leaveContent','leaveArrow')">
+
+        <div class="section-title">
+          Leaves & Extra Hours
+        </div>
+
+        <div class="collapse-arrow"
+             id="leaveArrow">
+
+          ▼
+
+        </div>
+
+      </div>
+
+      <div id="leaveContent"
+           class="section-content">
+
+        <div class="form-check mb-3 mt-3">
+
+          <input class="form-check-input"
+                 type="checkbox"
+                 id="leaveCheckbox">
+
+          <label class="form-check-label">
+            Did you apply any leaves?
+          </label>
+
+        </div>
+
+        <div id="weekInputs"
+             class="hidden">
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-wrapper">
+
+      <table id="billableTable">
+
+        <thead>
+
+        <tr>
+
+          <th style="width:8%">
+            S.NO.
+          </th>
+
+          <th style="width:52%">
+            Details
+          </th>
+
+          <th style="width:20%">
+            Days or Hours
+          </th>
+
+          <th style="width:20%">
+            No. of Leaves on Week basis
+          </th>
+
+        </tr>
+
+        </thead>
+
+        <tbody id="tableBody"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+/* =========================================
+   CONSTANTS
+========================================= */
+
+const HOURS_PER_DAY = 8;
+
+const WORKING_DAYS = [1,2,3,4,5];
+
+const today = new Date();
+
+const currentMonth = today.getMonth();
+
+const currentYear = today.getFullYear();
+
+const monthName =
+  today.toLocaleString(
+    'default',
+    { month:'long' }
+  );
+
+document.getElementById("monthTitle")
+.innerHTML =
+  `${monthName} ${currentYear} Billable Report`;
+
+let weeks = [];
+
+let holidayDays = 0;
+
+
+/* =========================================
+   GENERATE WEEKS
+========================================= */
+
+function generateWeeks(){
+
+  const firstDay =
+    new Date(currentYear, currentMonth, 1);
+
+  const lastDay =
+    new Date(currentYear, currentMonth + 1, 0);
+
+  let current =
+    new Date(firstDay);
+
+  let weekNumber = 1;
+
+  while(current <= lastDay){
+
+    let weekStart =
+      new Date(current);
+
+    let workDays = 0;
+
+    while(
+      current <= lastDay &&
+      current.getDay() !== 0
+    ){
+
+      if(WORKING_DAYS.includes(current.getDay())){
+        workDays++;
+      }
+
+      current.setDate(current.getDate()+1);
+
+    }
+
+    let weekEnd =
+      new Date(current);
+
+    weekEnd.setDate(weekEnd.getDate()-1);
+
+    if(
+      current <= lastDay &&
+      current.getDay() === 0
+    ){
+
+      current.setDate(current.getDate()+1);
+
+    }
+
+    weeks.push({
+
+      weekNumber,
+
+      workDays,
+
+      leaves:0,
+
+      extraHours:0,
+
+      startDate:weekStart,
+
+      endDate:weekEnd
+
+    });
+
+    weekNumber++;
+
+  }
+
+}
+
+
+/* =========================================
+   FORMAT DATE
+========================================= */
+
+function formatDate(date){
+
+  return date.toLocaleDateString(
+    'en-IN',
+    {
+      day:'2-digit',
+      month:'short'
+    }
+  );
+
+}
+
+
+/* =========================================
+   TOGGLE SECTION
+========================================= */
+
+function toggleSection(contentId, arrowId){
+
+  const content =
+    document.getElementById(contentId);
+
+  const arrow =
+    document.getElementById(arrowId);
+
+  if(content.style.display === "none"){
+
+    content.style.display = "block";
+
+    arrow.classList.remove(
+      "collapsed-arrow"
+    );
+
+  }else{
+
+    content.style.display = "none";
+
+    arrow.classList.add(
+      "collapsed-arrow"
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   RENDER INPUTS
+========================================= */
+
+function renderInputs(){
+
+  const container =
+    document.getElementById("weekInputs");
+
+  container.innerHTML = "";
+
+  weeks.forEach((week,index)=>{
+
+    const div =
+      document.createElement("div");
+
+    div.className = "week-card";
+
+    div.innerHTML = `
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+          <span class="week-badge">
+            Week ${week.weekNumber}
+          </span>
+
+        </div>
+
+        <div class="date-range">
+
+          ${formatDate(week.startDate)}
+          -
+          ${formatDate(week.endDate)}
+
+        </div>
+
+      </div>
+
+      <div class="row">
+
+        <div class="col-md-6 mb-2">
+
+          <label class="form-label">
+            Leave Days
+          </label>
+
+          <input type="number"
+                 min="0"
+                 value="0"
+                 class="form-control leaveInput"
+                 data-index="${index}">
+
+        </div>
+
+        <div class="col-md-6 mb-2">
+
+          <label class="form-label">
+            Extra Hours
+          </label>
+
+          <input type="number"
+                 min="0"
+                 value="0"
+                 class="form-control extraInput"
+                 data-index="${index}">
+
+        </div>
+
+      </div>
+
+    `;
+
+    container.appendChild(div);
+
+  });
+
+  addListeners();
+
+}
+
+
+/* =========================================
+   LISTENERS
+========================================= */
+
+function addListeners(){
+
+  document
+    .querySelectorAll(".leaveInput")
+    .forEach(input=>{
+
+      input.addEventListener("input",function(){
+
+        const index =
+          this.dataset.index;
+
+        weeks[index].leaves =
+          parseInt(this.value || 0);
+
+        generateTable();
+
+      });
+
+    });
+
+
+  document
+    .querySelectorAll(".extraInput")
+    .forEach(input=>{
+
+      input.addEventListener("input",function(){
+
+        const index =
+          this.dataset.index;
+
+        weeks[index].extraHours =
+          parseInt(this.value || 0);
+
+        generateTable();
+
+      });
+
+    });
+
+}
+
+
+/* =========================================
+   HOLIDAY CHECKBOX
+========================================= */
+
+document
+.getElementById("holidayCheckbox")
+.addEventListener("change",function(){
+
+  const container =
+    document.getElementById("holidayContainer");
+
+  if(this.checked){
+
+    container.classList.remove("hidden");
+
+  }else{
+
+    container.classList.add("hidden");
+
+    holidayDays = 0;
+
+    document.getElementById("holidayDays").value = 0;
+
+    generateTable();
+
+  }
+
+});
+
+
+document
+.getElementById("holidayDays")
+.addEventListener("input",function(){
+
+  holidayDays =
+    parseInt(this.value || 0);
+
+  generateTable();
+
+});
+
+
+/* =========================================
+   LEAVE CHECKBOX
+========================================= */
+
+document
+.getElementById("leaveCheckbox")
+.addEventListener("change",function(){
+
+  const weekInputs =
+    document.getElementById("weekInputs");
+
+  if(this.checked){
+
+    weekInputs.classList.remove("hidden");
+
+  }else{
+
+    weekInputs.classList.add("hidden");
+
+    weeks.forEach(w=>{
+
+      w.leaves = 0;
+      w.extraHours = 0;
+
+    });
+
+    document
+      .querySelectorAll(".leaveInput")
+      .forEach(i=>i.value=0);
+
+    document
+      .querySelectorAll(".extraInput")
+      .forEach(i=>i.value=0);
+
+    generateTable();
+
+  }
+
+});
+
+
+/* =========================================
+   GENERATE TABLE
+========================================= */
+
+function generateTable(){
+
+  const tbody =
+    document.getElementById("tableBody");
+
+  tbody.innerHTML = "";
+
+  let totalWorkingDays = 0;
+
+  let totalLeaves = 0;
+
+  let totalWorkedDays = 0;
+
+  let totalHours = 0;
+
+  let totalExtraHours = 0;
+
+  weeks.forEach(week=>{
+
+    totalWorkingDays += week.workDays;
+
+    totalLeaves += week.leaves;
+
+    totalWorkedDays +=
+      (week.workDays - week.leaves);
+
+    const weekHours =
+      (
+        (
+          week.workDays
+          - week.leaves
+        )
+        * HOURS_PER_DAY
+      )
+      + week.extraHours;
+
+    totalHours += weekHours;
+
+    totalExtraHours += week.extraHours;
+
+  });
+
+
+  totalWorkingDays =
+    totalWorkingDays - holidayDays;
+
+  totalWorkedDays =
+    totalWorkedDays - holidayDays;
+
+  totalHours =
+    totalHours -
+    (holidayDays * HOURS_PER_DAY);
+
+
+  const rows = [
+
+    [
+      "1",
+      "Total Number of Working(Billable) Days:",
+      totalWorkingDays
+    ],
+
+    [
+      "2",
+      "Number of Days worked:",
+      totalWorkedDays
+    ],
+
+    [
+      "3",
+      "Number of Days on Leave:",
+      totalLeaves
+    ],
+
+    [
+      "4",
+      "Extra days or hours charged:",
+      `${totalExtraHours}`
+    ],
+
+    [
+      "5",
+      "Work Location (Offshore or Onsite):",
+      "Offshore"
+    ]
+
+  ];
+
+
+  weeks.forEach((week,index)=>{
+
+    const weekHours =
+      (
+        (
+          week.workDays
+          - week.leaves
+        )
+        * HOURS_PER_DAY
+      )
+      + week.extraHours;
+
+    rows.push([
+
+      `${6+index}`,
+
+      `Billable hours for Week ${week.weekNumber}:`,
+
+      `${weekHours}`
+
+    ]);
+
+  });
+
+
+  rows.push([
+
+    `${6 + weeks.length}`,
+
+    "Total billable hours for the Month:",
+
+    `${totalHours}`
+
+  ]);
+
+
+  rows.push([
+
+    `${7 + weeks.length}`,
+
+`Attach every week approved Open Air pdf reports for the month:
+(PDF name Format should MonthName-Week No.
+EX:${monthName.substring(0,3).toUpperCase()}-Week1.pdf)`,
+
+    ""
+
+  ]);
+
+
+  rows.forEach((row,rowIndex)=>{
+
+    const tr =
+      document.createElement("tr");
+
+    row.forEach(cell=>{
+
+      const td =
+        document.createElement("td");
+
+      td.innerText = cell;
+
+      tr.appendChild(td);
+
+    });
+
+
+    if(rowIndex === 0){
+
+      const td =
+        document.createElement("td");
+
+      td.setAttribute("rowspan","5");
+
+      tr.appendChild(td);
+
+    }
+
+
+    if(
+      rowIndex >= 5 &&
+      rowIndex < (5 + weeks.length)
+    ){
+
+      const weekIndex =
+        rowIndex - 5;
+
+      const td =
+        document.createElement("td");
+
+      td.innerText =
+        weeks[weekIndex].leaves;
+
+      tr.appendChild(td);
+
+    }
+
+
+    if(
+      rowIndex ===
+      (5 + weeks.length)
+    ){
+
+      const td =
+        document.createElement("td");
+
+      tr.appendChild(td);
+
+    }
+
+
+    if(
+      rowIndex ===
+      (6 + weeks.length)
+    ){
+
+      const td =
+        document.createElement("td");
+
+      tr.appendChild(td);
+
+    }
+
+    tbody.appendChild(tr);
+
+  });
+
+}
+
+
+/* =========================================
+   COPY TABLE
+========================================= */
+
+function copyTableToExcel(){
+
+  const originalTable =
+    document.getElementById("billableTable");
+
+  const clonedTable =
+    originalTable.cloneNode(true);
+
+  clonedTable.style.width = "650px";
+
+  clonedTable.style.tableLayout = "fixed";
+
+  clonedTable.style.borderCollapse = "collapse";
+
+  const rows =
+    clonedTable.querySelectorAll("tr");
+
+  rows.forEach(row=>{
+
+    const cells =
+      row.querySelectorAll("th, td");
+
+    cells.forEach((cell,index)=>{
+
+      cell.style.border =
+        "1px solid black";
+
+      cell.style.padding =
+        "4px";
+
+      cell.style.fontSize =
+        "12px";
+
+      if(index === 0){
+        cell.style.width = "40px";
+      }
+
+      if(index === 1){
+        cell.style.width = "320px";
+      }
+
+      if(index === 2){
+        cell.style.width = "120px";
+      }
+
+      if(index === 3){
+        cell.style.width = "90px";
+      }
+
+    });
+
+  });
+
+  const tempDiv =
+    document.createElement("div");
+
+  tempDiv.style.position =
+    "absolute";
+
+  tempDiv.style.left =
+    "-9999px";
+
+  tempDiv.appendChild(clonedTable);
+
+  document.body.appendChild(tempDiv);
+
+  const range =
+    document.createRange();
+
+  range.selectNode(clonedTable);
+
+  window.getSelection().removeAllRanges();
+
+  window.getSelection().addRange(range);
+
+  document.execCommand("copy");
+
+  window.getSelection().removeAllRanges();
+
+  document.body.removeChild(tempDiv);
+
+  alert("Compact table copied successfully!");
+
+}
+
+
+/* =========================================
+   COPY MAIL BODY
+========================================= */
+
+async function sendEmail(){
+
+  const originalTable =
+    document.getElementById("billableTable");
+
+  const clonedTable =
+    originalTable.cloneNode(true);
+
+  clonedTable.style.width = "650px";
+  clonedTable.style.borderCollapse = "collapse";
+  clonedTable.style.tableLayout = "fixed";
+  clonedTable.style.fontFamily = "Calibri";
+
+  const rows =
+    clonedTable.querySelectorAll("tr");
+
+  rows.forEach(row=>{
+
+    const cells =
+      row.querySelectorAll("th, td");
+
+    cells.forEach((cell,index)=>{
+
+      cell.style.border =
+        "1px solid black";
+
+      cell.style.padding =
+        "4px";
+
+      cell.style.fontSize =
+        "12px";
+
+      if(index === 0){
+        cell.style.width = "40px";
+      }
+
+      if(index === 1){
+        cell.style.width = "320px";
+      }
+
+      if(index === 2){
+        cell.style.width = "120px";
+      }
+
+      if(index === 3){
+        cell.style.width = "90px";
+      }
+
+    });
+
+  });
+
+
+  const emailHTML = `
+
+    <div style="
+      font-family:Calibri;
+      font-size:14px;
+      color:#000;
+    ">
+
+      <p>Hi Ravi,</p>
+
+      <p>
+        Greetings of the day.
+      </p>
+
+      <p>
+        Please look into the billing details
+        for the month of ${monthName}
+        and attached the timesheet pdf.
+      </p>
+
+      ${clonedTable.outerHTML}
+
+      <br>
+
+      <p>
+        Thanks,
+      </p>
+
+    </div>
+
+  `;
+
+
+  const blob =
+    new Blob(
+      [emailHTML],
+      { type: "text/html" }
+    );
+
+  const data =
+    [
+      new ClipboardItem({
+        "text/html": blob
+      })
+    ];
+
+  await navigator.clipboard.write(data);
+
+  alert(
+`Mail body copied successfully!
+
+Open your reply mail and simply paste it.`
+  );
+
+}
+
+/* =========================================
+   REFRESH WARNING
+========================================= */
+
+window.addEventListener(
+  "beforeunload",
+  function (e) {
+
+    e.preventDefault();
+
+    e.returnValue =
+      "Form data will be lost. Are you sure?";
+
+  }
+);
+
+
+/* =========================================
+   INIT
+========================================= */
+
+generateWeeks();
+
+renderInputs();
+
+generateTable();
+
+</script>
+
+</body>
+
+</html>
