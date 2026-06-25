@@ -186,7 +186,7 @@ BillableReportHelper
 ```
 Download Link
 ```
-https://drive.google.com/drive/folders/1GZG8ohe7q1GLymQlMcNrrUu0uVl6JQ2c?usp=sharing
+https://drive.google.com/file/d/1dqmmGuO-yqf9pUXKPX-9dOv6rQzHdema/view?usp=sharing
 ```
 
 The Desktop Helper:
