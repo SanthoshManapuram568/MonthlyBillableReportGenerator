@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Monthly Billable Report</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+  <style>
+
+    body{
+      background:#eef2f7;
+      padding:20px;
+      font-family:Calibri, Arial, sans-serif;
+    }
+
+    .main-card{
+      background:white;
+      border-radius:18px;
+      padding:25px;
+      box-shadow:0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .title{
+      font-size:28px;
+      font-weight:700;
+      color:#0d6efd;
+    }
+
+    .sub-title{
+      color:#6c757d;
+      font-size:14px;
+    }
+
+    .section-box{
+      background:#fafbfd;
+      border:1px solid #e3e6ea;
+      border-radius:14px;
+      padding:18px;
+      margin-top:20px;
+    }
+
+    .section-title{
+      font-size:18px;
+      font-weight:600;
+      color:#343a40;
+    }
+
+    .section-header{
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .collapse-arrow{
+      font-size:18px;
+      transition:0.3s;
+    }
+
+    .collapsed-arrow{
+      transform:rotate(-90deg);
+    }
+
+    .section-content{
+      transition:0.3s ease;
+    }
+
+    .week-card{
+      background:white;
+      border:1px solid #dee2e6;
+      border-radius:12px;
+      padding:15px;
+      margin-bottom:12px;
+      transition:0.2s;
+    }
+
+    .week-card:hover{
+      box-shadow:0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    .week-badge{
+      background:#0d6efd;
+      color:white;
+      border-radius:20px;
+      padding:4px 10px;
+      font-size:12px;
+      font-weight:600;
+    }
+
+    .date-range{
+      font-size:13px;
+      color:#6c757d;
+      font-weight:500;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse !important;
+      margin-top:25px;
+    }
+
+    table td,
+    table th{
+      border:1px solid black !important;
+      padding:6px;
+      font-size:14px;
+      vertical-align:middle;
+    }
+
+    table th{
+      background:#ececec !important;
+      text-align:center;
+      font-weight:600;
+    }
+
+    .copy-btn{
+      border-radius:10px;
+      padding:10px 18px;
+      font-weight:600;
+    }
+
+    .hidden{
+      display:none;
+    }
+
+    .table-wrapper{
+      overflow-x:auto;
+    }
+
+    .holiday-summary{
+      color:#495057;
+      font-size:13px;
+      margin-bottom:12px;
+    }
+
+    .leave-summary{
+      color:#495057;
+      font-size:13px;
+      margin-top:10px;
+      margin-bottom:8px;
+      line-height:1.5;
+    }
+
+    .holiday-calendar{
+      background:white;
+      border:1px solid #dee2e6;
+      border-radius:14px;
+      padding:16px;
+    }
+
+    .calendar-weekdays,
+    .calendar-grid{
+      display:grid;
+      grid-template-columns:repeat(7, minmax(0, 1fr));
+      gap:8px;
+    }
+
+    .calendar-weekday{
+      text-align:center;
+      font-size:12px;
+      font-weight:600;
+      color:#6c757d;
+      text-transform:uppercase;
+    }
+
+    .calendar-day,
+    .calendar-spacer{
+      min-height:56px;
+      border-radius:12px;
+    }
+
+    .calendar-spacer{
+      background:transparent;
+    }
+
+    .calendar-day{
+      border:1px solid #d8dee6;
+      background:#f8fafc;
+      padding:8px;
+      text-align:left;
+      transition:0.2s ease;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      cursor:pointer;
+    }
+
+    .calendar-day:hover{
+      border-color:#0d6efd;
+      box-shadow:0 4px 12px rgba(13,110,253,0.12);
+    }
+
+    .calendar-day.selected{
+      background:#dbeafe;
+      border-color:#0d6efd;
+      color:#0b3d91;
+    }
+
+    .calendar-day.weekend{
+      background:#f1f3f5;
+      border-style:dashed;
+      color:#98a2ad;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+
+    .calendar-day-number{
+      font-weight:700;
+      font-size:16px;
+    }
+
+    .calendar-day-meta{
+      font-size:11px;
+      color:inherit;
+    }
+
+    /* MOBILE BUTTON FIX */
+
+    .button-container button{
+      flex:1;
+    }
+
+    /* DESKTOP */
+
+    @media(min-width:992px){
+
+      .button-container{
+        width:auto !important;
+      }
+
+      .button-container button{
+        flex:none;
+        min-width:140px;
+      }
+
+    }
+
+    /* =========================================
+       DRAG AND DROP UPLOAD
+    ========================================= */
+
+    .drop-zone{
+      border:2px dashed #0d6efd;
+      border-radius:12px;
+      padding:32px 20px;
+      text-align:center;
+      cursor:pointer;
+      transition:0.2s;
+      background:#f8fafc;
+      margin-top:10px;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over{
+      background:#dbeafe;
+      border-color:#0b5ed7;
+      box-shadow:0 4px 12px rgba(13,110,253,0.12);
+    }
+
+    .drop-zone-icon{
+      font-size:38px;
+      margin-bottom:8px;
+    }
+
+    .file-item{
+      background:white;
+      border:1px solid #dee2e6;
+      border-radius:8px;
+      padding:9px 14px;
+      margin-bottom:8px;
+      transition:0.15s;
+    }
+
+    .file-item:hover{
+      box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .file-name{
+      font-weight:500;
+      font-size:13px;
+      color:#343a40;
+    }
+
+    .file-size{
+      font-size:12px;
+      color:#6c757d;
+    }
+
+    /* =========================================
+       OUTLOOK CONFIGURATION
+    ========================================= */
+
+    .config-label{
+      font-weight:500;
+      font-size:14px;
+      color:#495057;
+    }
+
+    .info-banner{
+      background:#eef4ff;
+      border:1px solid #c7d8ff;
+      border-radius:8px;
+      padding:10px 14px;
+      font-size:13px;
+      color:#3d5a99;
+      margin-top:14px;
+      line-height:1.6;
+    }
+
+    /* =========================================
+       SEND SPINNER
+    ========================================= */
+
+    #draftSpinner{
+      display:none;
+    }
+
+    /* =========================================
+       PROGRESS MODAL
+    ========================================= */
+
+    .progress-step {
+      padding: 8px 0;
+      font-size: 14px;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-step.active {
+      color: #0d6efd;
+      font-weight: 500;
+    }
+
+    .progress-step.completed {
+      color: #198754;
+    }
+
+    .step-indicator {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      text-align: center;
+      line-height: 20px;
+      font-size: 12px;
+    }
+
+    /* =========================================
+       SECTION VALIDATION FLASH
+    ========================================= */
+
+    .section-error {
+      border-color: #dc3545 !important;
+      box-shadow: 0 0 0 3px rgba(220,53,69,0.18) !important;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .section-error-note {
+      color: #dc3545;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 2px 2px 2px;
+      display: block;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+  <div class="main-card">
+
+    <!-- HEADER -->
+
+    <div class="d-flex flex-column flex-lg-row
+                justify-content-between
+                align-items-start align-items-lg-center
+                gap-3
+                mb-4">
+
+      <!-- LEFT -->
+
+      <div>
+
+        <div class="title"
+             id="monthTitle">
+        </div>
+
+        <div class="sub-title">
+		  An <b>SRM Internal Site</b> for auto generating monthly billable report<br>
+		  Developed by <b>Santhosh Kumar Manapuram </b>
+			<a href="https://github.com/SanthoshManapuram568/MonthlyBillableReportGenerator" target="_blank"><svg viewBox="0 0 16 16" width="16" height="16">
+				<path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
+				</path>
+		  </svg></a>
+        </div>
+
+      </div>
+
+      <!-- BUTTONS -->
+
+      <div class="d-flex
+                  flex-row
+                  gap-2
+                  w-100
+                  w-lg-auto
+                  button-container">
+
+        <button class="btn btn-primary copy-btn"
+                onclick="copyTableToExcel()">
+
+          Copy Table
+
+        </button>
+
+        <button class="btn btn-success copy-btn"
+                onclick="previewMailBody()">
+
+          Preview Mail Body
+
+        </button>
+
+        <button class="btn btn-primary copy-btn"
+                id="openDraftBtn"
+                onclick="openOutlookDraft()">
+
+          <span class="spinner-border spinner-border-sm me-1"
+                id="draftSpinner"
+                role="status"
+                aria-hidden="true"
+                style="display:none;"></span>
+
+          <span class="btn-text">Open Outlook Draft</span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- HOLIDAY SECTION -->
+
+    <div class="section-box">
+
+      <div class="d-flex
+                  justify-content-between
+                  align-items-center
+                  section-header"
+           onclick="toggleSection('holidayContent','holidayArrow')">
+
+        <div class="section-title">
+          Holidays
+        </div>
+
+        <div class="collapse-arrow"
+             id="holidayArrow">
+
+          ▼
+
+        </div>
+
+      </div>
+
+   <div class="holiday-summary hidden"
+     id="holidaySummary">
+   </div>
+
+      <div id="holidayContent"
+           class="section-content">
+
+        <div class="form-check mb-3 mt-3">
+
+          <input class="form-check-input"
+                 type="checkbox"
+                 id="holidayCheckbox">
+
+          <label class="form-check-label">
+            Are there any holidays this month?
+          </label>
+
+        </div>
+
+        <div id="holidayContainer"
+             class="hidden">
+
+          <div class="holiday-calendar">
+
+            <div class="calendar-weekdays mb-2"
+                 id="holidayWeekdays"></div>
+
+            <div class="calendar-grid"
+                 id="holidayCalendar"></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- LEAVE SECTION -->
+
+    <div class="section-box">
+
+      <div class="d-flex
+                  justify-content-between
+                  align-items-center
+                  section-header"
+           onclick="toggleSection('leaveContent','leaveArrow')">
+
+        <div class="section-title">
+          Leaves & Extra Hours
+        </div>
+
+        <div class="collapse-arrow"
+             id="leaveArrow">
+
+          ▼
+
+        </div>
+
+      </div>
+
+       <div class="leave-summary hidden"
+         id="leaveSummary">
+       </div>
+
+      <div id="leaveContent"
+           class="section-content">
+
+        <div class="form-check mb-3 mt-3">
+
+          <input class="form-check-input"
+                 type="checkbox"
+                 id="leaveCheckbox">
+
+          <label class="form-check-label">
+            Did you apply any leaves?
+          </label>
+
+        </div>
+
+        <div id="weekInputs"
+             class="hidden">
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- WEEKLY OPENAIR TIMESHEETS -->
+
+    <div class="section-box" id="timesheetSection">
+
+      <div class="d-flex
+                  justify-content-between
+                  align-items-center
+                  section-header"
+           onclick="toggleSection('timesheetContent','timesheetArrow')">
+
+        <div class="section-title">
+          &#128206; Weekly OpenAir Timesheets
+        </div>
+
+        <div class="collapse-arrow"
+             id="timesheetArrow">
+          &#9660;
+        </div>
+
+      </div>
+
+       <div class="leave-summary hidden"
+         id="timesheetSummary">
+       </div>
+
+      <div id="timesheetContent"
+           class="section-content">
+
+        <div id="dropZone"
+             class="drop-zone">
+
+          <div class="drop-zone-icon">&#128193;</div>
+
+          <div style="font-weight:600; font-size:15px;">
+            Drag &amp; Drop PDF files here
+          </div>
+
+          <div class="text-muted"
+               style="font-size:13px; margin-top:4px;">
+            or <u>click to browse</u>
+          </div>
+
+          <div class="text-muted"
+               style="font-size:12px; margin-top:4px;">
+            PDF files only &bull; Maximum 20 files
+          </div>
+
+          <input type="file"
+                 id="pdfFileInput"
+                 accept=".pdf"
+                 multiple
+                 style="display:none;">
+
+        </div>
+
+        <div id="fileStats"
+             class="hidden"
+             style="font-size:13px; color:#495057; margin-top:10px; margin-bottom:4px;">
+          <span>&#128196; <strong id="fileCount">0</strong> file(s) uploaded</span>
+          &nbsp;&bull;&nbsp;
+          <span>Total size: <strong id="totalSize">0 B</strong></span>
+        </div>
+
+        <div id="fileList"
+             class="mt-2">
+        </div>
+
+      </div>
+
+    </div>
+    <!-- EMAIL DETAILS -->
+
+    <div class="section-box" id="emailSection">
+
+      <div class="d-flex
+                  justify-content-between
+                  align-items-center
+                  section-header"
+           onclick="toggleSection('emailContent','emailArrow')">
+
+        <div class="section-title">
+          &#9993; Email Details
+        </div>
+
+        <div class="collapse-arrow"
+             id="emailArrow">
+          &#9660;
+        </div>
+
+      </div>
+
+      <div class="leave-summary hidden"
+           id="emailSummary">
+      </div>
+
+      <div id="emailContent"
+           class="section-content">
+
+        <!-- Helper Connection Status -->
+        <div id="helperStatus"
+             class="alert alert-info mb-3"
+             style="display:none;">
+          <strong>&#9203; Checking Desktop Helper...</strong>
+        </div>
+
+        <div id="helperNotRunning"
+             class="alert alert-danger mb-3"
+             style="display:none;">
+          <div class="d-flex align-items-start gap-2">
+            <span style="font-size:22px; line-height:1;">&#9888;</span>
+            <div>
+              <strong>Billable Report Helper is not running or not reachable.</strong><br>
+              <span style="font-size:13px;">
+                The desktop helper could not be reached at <code>localhost:8085</code>.
+              </span>
+              <hr class="my-2">
+              <strong>To fix this:</strong>
+              <ol class="mb-1 mt-1" style="font-size:13px; padding-left:18px;">
+                <li>Open the <strong>Start Menu</strong> and launch <strong>Billable Report Helper</strong>.</li>
+                <li>Wait for the <strong>green tray icon</strong> in the Windows system tray (bottom-right taskbar).</li>
+                <li>Click <strong>Retry Connection</strong> below, or reload this page.</li>
+              </ol>
+              <button type="button"
+                      class="btn btn-sm btn-outline-danger mt-1"
+                      onclick="checkHelperHealth()">
+                &#8635; Retry Connection
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="form-text">
+                You can enter multiple emails separated by commas. Example : test1@srmtech.com, test2@srmtech.com
+              </div>
+
+          <div class="col-md-6">
+
+            <label class="config-label form-label"
+                   for="recipientEmail">
+              Recipient Email
+            </label>
+
+            <input type="email"
+                   class="form-control"
+                   id="recipientEmail"
+                   placeholder="recipient@company.com"
+                   autocomplete="off">
+
+          </div>
+
+          <div class="col-md-6">
+
+            <label class="config-label form-label"
+                   for="ccEmail">
+              CC
+              <span class="text-muted fw-normal">(Optional)</span>
+            </label>
+
+            <input type="email"
+                   class="form-control"
+                   id="ccEmail"
+                   placeholder="cc@company.com (optional)"
+                   autocomplete="off">
+          </div>
+
+          <div class="col-12">
+
+            <label class="config-label form-label"
+                   for="mailSubject">
+              Subject
+            </label>
+
+            <input type="text"
+                   class="form-control"
+                   id="mailSubject"
+                   placeholder="Monthly Billable Report - ...">
+
+            <div class="form-text">
+              Auto-populated based on current month. You may edit if needed.
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="table-wrapper">
+
+      <table id="billableTable">
+
+        <thead>
+
+        <tr>
+
+          <th style="width:8%">
+            S.NO.
+          </th>
+
+          <th style="width:52%">
+            Details
+          </th>
+
+          <th style="width:20%">
+            Days or Hours
+          </th>
+
+          <th style="width:20%">
+            No. of Leaves on Week basis
+          </th>
+
+        </tr>
+
+        </thead>
+
+        <tbody id="tableBody"></tbody>
+
+      </table>
+
+    </div>
+
+
+  </div>
+
+</div>
+
+
+<!-- PROGRESS MODAL -->
+
+<div class="modal fade"
+     id="progressModal"
+     tabindex="-1"
+     data-bs-backdrop="static"
+     data-bs-keyboard="false">
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header border-0">
+
+        <h5 class="modal-title">Creating Outlook Draft...</h5>
+
+      </div>
+
+      <div class="modal-body">
+
+        <div id="progressSteps">
+
+          <div class="progress-step" id="step1">
+            <span class="step-indicator">⏳</span>
+            <span>Preparing Email...</span>
+          </div>
+
+          <div class="progress-step" id="step2">
+            <span class="step-indicator">⏳</span>
+            <span>Uploading Attachments...</span>
+          </div>
+
+          <div class="progress-step" id="step3">
+            <span class="step-indicator">⏳</span>
+            <span>Creating Outlook Draft...</span>
+          </div>
+
+          <div class="progress-step" id="step4">
+            <span class="step-indicator">⏳</span>
+            <span>Opening Outlook...</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- TOAST NOTIFICATION -->
+
+<div class="position-fixed bottom-0 end-0 p-3"
+     style="z-index:1100;">
+
+  <div id="notificationToast"
+       class="toast"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+
+    <div id="toastHeader"
+         class="toast-header">
+
+      <strong class="me-auto"
+              id="toastTitle">
+        Notification
+      </strong>
+
+      <button type="button"
+              class="btn-close"
+              id="toastClose"
+              data-bs-dismiss="toast"
+              aria-label="Close">
+      </button>
+
+    </div>
+
+    <div class="toast-body"
+         id="toastMessage"
+         style="font-size:14px;">
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   CONSTANTS
+========================================= */
+
+const HOURS_PER_DAY = 8;
+
+const WORKING_DAYS = [1,2,3,4,5];
+
+const today = new Date();
+
+const currentMonth = today.getMonth();
+
+const currentYear = today.getFullYear();
+
+const monthName =
+  today.toLocaleString(
+    'default',
+    { month:'long' }
+  );
+
+document.getElementById("monthTitle")
+.innerHTML =
+  `${monthName} ${currentYear} Billable Report`;
+
+let weeks = [];
+
+let selectedHolidayDates = new Set();
+
+
+/* =========================================
+   GENERATE WEEKS
+========================================= */
+
+function generateWeeks(){
+
+  weeks = [];
+
+  const firstDay =
+    new Date(currentYear, currentMonth, 1);
+
+  const lastDay =
+    new Date(currentYear, currentMonth + 1, 0);
+
+  let current =
+    new Date(firstDay);
+
+  let weekNumber = 1;
+
+  while(current <= lastDay){
+
+    let weekStart =
+      new Date(current);
+
+    let workDays = 0;
+
+    while(
+      current <= lastDay &&
+      current.getDay() !== 0
+    ){
+
+      if(WORKING_DAYS.includes(current.getDay())){
+        workDays++;
+      }
+
+      current.setDate(current.getDate()+1);
+
+    }
+
+    let weekEnd =
+      new Date(current);
+
+    weekEnd.setDate(weekEnd.getDate()-1);
+
+    if(
+      current <= lastDay &&
+      current.getDay() === 0
+    ){
+
+      current.setDate(current.getDate()+1);
+
+    }
+
+    weeks.push({
+
+      weekNumber,
+
+      workDays,
+
+      leaves:0,
+
+      extraHours:0,
+
+      startDate:weekStart,
+
+      endDate:weekEnd
+
+    });
+
+    weekNumber++;
+
+  }
+
+}
+
+
+/* =========================================
+   FORMAT DATE
+========================================= */
+
+function formatDate(date){
+
+  return date.toLocaleDateString(
+    'en-IN',
+    {
+      day:'2-digit',
+      month:'short'
+    }
+  );
+
+}
+
+
+function getDateKey(date){
+
+  const month =
+    `${date.getMonth() + 1}`.padStart(2,'0');
+
+  const day =
+    `${date.getDate()}`.padStart(2,'0');
+
+  return `${date.getFullYear()}-${month}-${day}`;
+
+}
+
+
+function isWorkingDay(date){
+
+  return WORKING_DAYS.includes(date.getDay());
+
+}
+
+
+function getHolidayCountForWeek(week){
+
+  let holidayCount = 0;
+
+  selectedHolidayDates.forEach(dateKey=>{
+
+    const date =
+      new Date(`${dateKey}T00:00:00`);
+
+    if(
+      isWorkingDay(date) &&
+      date >= week.startDate &&
+      date <= week.endDate
+    ){
+      holidayCount++;
+    }
+
+  });
+
+  return holidayCount;
+
+}
+
+
+function updateHolidaySummary(){
+
+  const summary =
+    document.getElementById("holidaySummary");
+
+  const holidayCount =
+    selectedHolidayDates.size;
+
+  if(holidayCount === 0){
+
+    summary.textContent = "";
+
+    summary.classList.add("hidden");
+
+    return;
+
+  }
+
+  const selectedDates =
+    Array
+      .from(selectedHolidayDates)
+      .sort()
+      .map(dateKey=>{
+
+        const date =
+          new Date(`${dateKey}T00:00:00`);
+
+        return date.toLocaleDateString(
+          'en-IN',
+          {
+            day:'2-digit',
+            month:'short'
+          }
+        );
+
+      })
+      .join(', ');
+
+  summary.textContent =
+    `${holidayCount} holiday${holidayCount === 1 ? '' : 's'} selected on ${selectedDates}.`;
+
+  summary.classList.remove("hidden");
+
+}
+
+
+function renderHolidayCalendar(){
+
+  const weekdayContainer =
+    document.getElementById("holidayWeekdays");
+
+  const calendar =
+    document.getElementById("holidayCalendar");
+
+  const weekdayLabels =
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  weekdayContainer.innerHTML =
+    weekdayLabels
+      .map(label=>`<div class="calendar-weekday">${label}</div>`)
+      .join('');
+
+  calendar.innerHTML = "";
+
+  const firstDay =
+    new Date(currentYear, currentMonth, 1);
+
+  const lastDate =
+    new Date(currentYear, currentMonth + 1, 0)
+      .getDate();
+
+  for(let index = 0; index < firstDay.getDay(); index++){
+
+    const spacer =
+      document.createElement("div");
+
+    spacer.className = "calendar-spacer";
+
+    calendar.appendChild(spacer);
+
+  }
+
+  for(let day = 1; day <= lastDate; day++){
+
+    const date =
+      new Date(currentYear, currentMonth, day);
+
+    const isWeekend =
+      !isWorkingDay(date);
+
+    const dateKey =
+      getDateKey(date);
+
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+    button.className = `calendar-day${isWeekend ? ' weekend' : ''}${selectedHolidayDates.has(dateKey) ? ' selected' : ''}`;
+
+    button.innerHTML = `
+      <span class="calendar-day-number">${day}</span>
+      <span class="calendar-day-meta">${date.toLocaleDateString('en-IN', { weekday:'short' })}</span>
+    `;
+
+    if(isWeekend){
+      button.disabled = true;
+      button.title = "Weekends are not counted as billable working days.";
+    }else{
+      button.addEventListener("click",()=>{
+
+        if(selectedHolidayDates.has(dateKey)){
+          selectedHolidayDates.delete(dateKey);
+        }else{
+          selectedHolidayDates.add(dateKey);
+        }
+
+        renderHolidayCalendar();
+        updateHolidaySummary();
+        generateTable();
+
+      });
+    }
+
+    calendar.appendChild(button);
+
+  }
+
+  updateHolidaySummary();
+
+}
+
+
+/* =========================================
+   TOGGLE SECTION
+========================================= */
+
+function toggleSection(contentId, arrowId){
+
+  const content =
+    document.getElementById(contentId);
+
+  const arrow =
+    document.getElementById(arrowId);
+
+  if(content.style.display === "none"){
+
+    content.style.display = "block";
+
+    arrow.classList.remove(
+      "collapsed-arrow"
+    );
+
+  }else{
+
+    content.style.display = "none";
+
+    arrow.classList.add(
+      "collapsed-arrow"
+    );
+
+  }
+
+}
+
+function collapseAllSectionsOnLoad(){
+
+  const sections = [
+    { contentId:"holidayContent",   arrowId:"holidayArrow" },
+    { contentId:"leaveContent",     arrowId:"leaveArrow" },
+    { contentId:"timesheetContent", arrowId:"timesheetArrow" },
+    { contentId:"emailContent",     arrowId:"emailArrow" }
+  ];
+
+  sections.forEach(section=>{
+
+    const content = document.getElementById(section.contentId);
+    const arrow   = document.getElementById(section.arrowId);
+
+    if(content){
+      content.style.display = "none";
+    }
+
+    if(arrow){
+      arrow.classList.add("collapsed-arrow");
+    }
+
+  });
+
+}
+
+
+/* =========================================
+   RENDER INPUTS
+========================================= */
+
+function renderInputs(){
+
+  const container =
+    document.getElementById("weekInputs");
+
+  container.innerHTML = "";
+
+  weeks.forEach((week,index)=>{
+
+    const div =
+      document.createElement("div");
+
+    div.className = "week-card";
+
+    div.innerHTML = `
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+          <span class="week-badge">
+            Week ${week.weekNumber}
+          </span>
+
+        </div>
+
+        <div class="date-range">
+
+          ${formatDate(week.startDate)}
+          -
+          ${formatDate(week.endDate)}
+
+        </div>
+
+      </div>
+
+      <div class="row">
+
+        <div class="col-md-6 mb-2">
+
+          <label class="form-label">
+            Leave Days
+          </label>
+
+          <input type="number"
+                 min="0"
+                 value="0"
+                 class="form-control leaveInput"
+                 data-index="${index}">
+
+        </div>
+
+        <div class="col-md-6 mb-2">
+
+          <label class="form-label">
+            Extra Hours
+          </label>
+
+          <input type="number"
+                 min="0"
+                 value="0"
+                 class="form-control extraInput"
+                 data-index="${index}">
+
+        </div>
+
+      </div>
+
+    `;
+
+    container.appendChild(div);
+
+  });
+
+  addListeners();
+
+  updateLeaveSummary();
+
+}
+
+
+function getWeekLabel(week){
+
+  return `<b>Week ${week.weekNumber}</b> (${formatDate(week.startDate)} - ${formatDate(week.endDate)})`;
+
+}
+
+
+function updateLeaveSummary(){
+
+  const summary =
+    document.getElementById("leaveSummary");
+
+  const messages = [];
+
+  weeks.forEach(week=>{
+
+    if(week.leaves > 0){
+      messages.push(
+        `${week.leaves} leave${week.leaves === 1 ? '' : 's'} applied on ${getWeekLabel(week)}.`
+      );
+    }
+
+    if(week.extraHours > 0){
+      messages.push(
+        `${week.extraHours} extra hour${week.extraHours === 1 ? '' : 's'} worked on ${getWeekLabel(week)}.`
+      );
+    }
+
+  });
+
+  if(messages.length === 0){
+
+    summary.innerHTML = "";
+    summary.classList.add("hidden");
+
+    return;
+
+  }
+
+  summary.innerHTML =
+    messages.join('<br>');
+
+  summary.classList.remove("hidden");
+
+}
+
+
+/* =========================================
+   LISTENERS
+========================================= */
+
+function addListeners(){
+
+  document
+    .querySelectorAll(".leaveInput")
+    .forEach(input=>{
+
+      input.addEventListener("input",function(){
+
+        const index =
+          this.dataset.index;
+
+        weeks[index].leaves =
+          parseInt(this.value || 0);
+
+        updateLeaveSummary();
+        generateTable();
+
+      });
+
+    });
+
+
+  document
+    .querySelectorAll(".extraInput")
+    .forEach(input=>{
+
+      input.addEventListener("input",function(){
+
+        const index =
+          this.dataset.index;
+
+        weeks[index].extraHours =
+          parseInt(this.value || 0);
+
+        updateLeaveSummary();
+        generateTable();
+
+      });
+
+    });
+
+}
+
+
+/* =========================================
+   HOLIDAY CHECKBOX
+========================================= */
+
+document
+.getElementById("holidayCheckbox")
+.addEventListener("change",function(){
+
+  const container =
+    document.getElementById("holidayContainer");
+
+  if(this.checked){
+
+    container.classList.remove("hidden");
+    renderHolidayCalendar();
+
+  }else{
+
+    container.classList.add("hidden");
+
+    selectedHolidayDates.clear();
+
+    renderHolidayCalendar();
+
+    generateTable();
+
+  }
+
+});
+
+
+/* =========================================
+   LEAVE CHECKBOX
+========================================= */
+
+document
+.getElementById("leaveCheckbox")
+.addEventListener("change",function(){
+
+  const weekInputs =
+    document.getElementById("weekInputs");
+
+  if(this.checked){
+
+    weekInputs.classList.remove("hidden");
+    updateLeaveSummary();
+
+  }else{
+
+    weekInputs.classList.add("hidden");
+
+    weeks.forEach(w=>{
+
+      w.leaves = 0;
+      w.extraHours = 0;
+
+    });
+
+    document
+      .querySelectorAll(".leaveInput")
+      .forEach(i=>i.value=0);
+
+    document
+      .querySelectorAll(".extraInput")
+      .forEach(i=>i.value=0);
+
+    updateLeaveSummary();
+    generateTable();
+
+  }
+
+});
+
+
+/* =========================================
+   GENERATE TABLE
+========================================= */
+
+function generateTable(){
+
+  const tbody =
+    document.getElementById("tableBody");
+
+  tbody.innerHTML = "";
+
+  let totalWorkingDays = 0;
+
+  let totalLeaves = 0;
+
+  let totalWorkedDays = 0;
+
+  let totalHours = 0;
+
+  let totalExtraHours = 0;
+
+  let totalHolidayDays = 0;
+
+  weeks.forEach(week=>{
+
+    const holidayCount =
+      getHolidayCountForWeek(week);
+
+    totalHolidayDays += holidayCount;
+
+    const effectiveWorkDays =
+      week.workDays - holidayCount;
+
+    const workedDays =
+      effectiveWorkDays - week.leaves;
+
+    totalWorkingDays += week.workDays;
+
+    totalLeaves += week.leaves;
+
+    totalWorkedDays +=
+      workedDays;
+
+    const weekHours =
+      (
+        (
+          effectiveWorkDays
+          - week.leaves
+        )
+        * HOURS_PER_DAY
+      )
+      + week.extraHours;
+
+    totalHours += weekHours;
+
+    totalExtraHours += week.extraHours;
+
+  });
+
+
+  totalWorkingDays =
+    totalWorkingDays - totalHolidayDays;
+
+
+  const rows = [
+
+    [
+      "1",
+      "Total Number of Working(Billable) Days:",
+      totalWorkingDays
+    ],
+
+    [
+      "2",
+      "Number of Days worked:",
+      totalWorkedDays
+    ],
+
+    [
+      "3",
+      "Number of Days on Leave:",
+      totalLeaves
+    ],
+
+    [
+      "4",
+      "Extra days or hours charged:",
+      `${totalExtraHours}`
+    ],
+
+    [
+      "5",
+      "Work Location (Offshore or Onsite):",
+      "Offshore"
+    ]
+
+  ];
+
+
+  weeks.forEach((week,index)=>{
+
+    const holidayCount =
+      getHolidayCountForWeek(week);
+
+    const effectiveWorkDays =
+      week.workDays - holidayCount;
+
+    const weekHours =
+      (
+        (
+          effectiveWorkDays
+          - week.leaves
+        )
+        * HOURS_PER_DAY
+      )
+      + week.extraHours;
+
+    rows.push([
+
+      `${6+index}`,
+
+      `Billable hours for Week ${week.weekNumber}:`,
+
+      `${weekHours}`
+
+    ]);
+
+  });
+
+
+  rows.push([
+
+    `${6 + weeks.length}`,
+
+    "Total billable hours for the Month:",
+
+    `${totalHours}`
+
+  ]);
+
+
+  rows.push([
+
+    `${7 + weeks.length}`,
+
+`Attach every week approved Open Air pdf reports for the month:
+(PDF name Format should MonthName-Week No.
+EX:${monthName.substring(0,3).toUpperCase()}-Week1.pdf)`,
+
+    ""
+
+  ]);
+
+
+  rows.forEach((row,rowIndex)=>{
+
+    const tr =
+      document.createElement("tr");
+
+    row.forEach(cell=>{
+
+      const td =
+        document.createElement("td");
+
+      td.innerText = cell;
+
+      tr.appendChild(td);
+
+    });
+
+
+    if(rowIndex === 0){
+
+      const td =
+        document.createElement("td");
+
+      td.setAttribute("rowspan","5");
+
+      tr.appendChild(td);
+
+    }
+
+
+    if(
+      rowIndex >= 5 &&
+      rowIndex < (5 + weeks.length)
+    ){
+
+      const weekIndex =
+        rowIndex - 5;
+
+      const td =
+        document.createElement("td");
+
+      td.innerText =
+        weeks[weekIndex].leaves;
+
+      tr.appendChild(td);
+
+    }
+
+
+    if(
+      rowIndex ===
+      (5 + weeks.length)
+    ){
+
+      const td =
+        document.createElement("td");
+
+      tr.appendChild(td);
+
+    }
+
+
+    if(
+      rowIndex ===
+      (6 + weeks.length)
+    ){
+
+      const td =
+        document.createElement("td");
+
+      tr.appendChild(td);
+
+    }
+
+    tbody.appendChild(tr);
+
+  });
+
+}
+
+
+/* =========================================
+   COPY TABLE
+========================================= */
+
+function copyTableToExcel(){
+
+  const originalTable =
+    document.getElementById("billableTable");
+
+  const clonedTable =
+    originalTable.cloneNode(true);
+
+  clonedTable.style.width = "650px";
+
+  clonedTable.style.tableLayout = "fixed";
+
+  clonedTable.style.borderCollapse = "collapse";
+
+  const rows =
+    clonedTable.querySelectorAll("tr");
+
+  rows.forEach(row=>{
+
+    const cells =
+      row.querySelectorAll("th, td");
+
+    cells.forEach((cell,index)=>{
+
+      cell.style.border =
+        "1px solid black";
+
+      cell.style.padding =
+        "4px";
+
+      cell.style.fontSize =
+        "12px";
+
+      if(index === 0){
+        cell.style.width = "40px";
+      }
+
+      if(index === 1){
+        cell.style.width = "320px";
+      }
+
+      if(index === 2){
+        cell.style.width = "120px";
+      }
+
+      if(index === 3){
+        cell.style.width = "90px";
+      }
+
+    });
+
+  });
+
+  const tempDiv =
+    document.createElement("div");
+
+  tempDiv.style.position =
+    "absolute";
+
+  tempDiv.style.left =
+    "-9999px";
+
+  tempDiv.appendChild(clonedTable);
+
+  document.body.appendChild(tempDiv);
+
+  const range =
+    document.createRange();
+
+  range.selectNode(clonedTable);
+
+  window.getSelection().removeAllRanges();
+
+  window.getSelection().addRange(range);
+
+  document.execCommand("copy");
+
+  window.getSelection().removeAllRanges();
+
+  document.body.removeChild(tempDiv);
+
+  alert("Compact table copied successfully!");
+
+}
+
+
+/* =========================================
+   COPY MAIL BODY
+========================================= */
+
+async function sendEmail(){
+
+  const originalTable =
+    document.getElementById("billableTable");
+
+  const clonedTable =
+    originalTable.cloneNode(true);
+
+  clonedTable.style.width = "650px";
+  clonedTable.style.borderCollapse = "collapse";
+  clonedTable.style.tableLayout = "fixed";
+  clonedTable.style.fontFamily = "Calibri";
+
+  const rows =
+    clonedTable.querySelectorAll("tr");
+
+  rows.forEach(row=>{
+
+    const cells =
+      row.querySelectorAll("th, td");
+
+    cells.forEach((cell,index)=>{
+
+      cell.style.border =
+        "1px solid black";
+
+      cell.style.padding =
+        "4px";
+
+      cell.style.fontSize =
+        "12px";
+
+      if(index === 0){
+        cell.style.width = "40px";
+      }
+
+      if(index === 1){
+        cell.style.width = "320px";
+      }
+
+      if(index === 2){
+        cell.style.width = "120px";
+      }
+
+      if(index === 3){
+        cell.style.width = "90px";
+      }
+
+    });
+
+  });
+
+
+  const emailHTML = `
+
+    <div style="
+      font-family:Calibri;
+      font-size:14px;
+      color:#000;
+    ">
+
+      <p>Hi Ravi,</p>
+
+      <p>
+        Greetings of the day.
+      </p>
+
+      <p>
+        Please look into the billing details
+        for the month of ${monthName}
+        and attached the timesheet pdf.
+      </p>
+
+      ${clonedTable.outerHTML}
+
+      <br>
+
+      <p>
+        Thanks,
+      </p>
+
+    </div>
+
+  `;
+
+
+  const blob =
+    new Blob(
+      [emailHTML],
+      { type: "text/html" }
+    );
+
+  const data =
+    [
+      new ClipboardItem({
+        "text/html": blob
+      })
+    ];
+
+  await navigator.clipboard.write(data);
+
+  alert(
+`Mail body copied successfully!
+
+Open your reply mail and simply paste it.`
+  );
+
+}
+
+/* =========================================
+   REFRESH WARNING
+========================================= */
+
+window.addEventListener(
+  "beforeunload",
+  function (e) {
+
+    e.preventDefault();
+
+    e.returnValue =
+      "Form data will be lost. Are you sure?";
+
+  }
+);
+
+
+/* =========================================
+   INIT
+========================================= */
+
+generateWeeks();
+
+renderInputs();
+
+generateTable();
+
+collapseAllSectionsOnLoad();
+
+</script>
+
+<!-- Bootstrap JS (required for Toast and Modal components) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Application Modules -->
+<script src="js/ui.js"></script>
+<script src="js/attachment.js"></script>
+<script src="js/validation.js"></script>
+<script src="js/mail.js"></script>
+<script src="js/helper.js"></script>
+<script src="js/outlook.js"></script>
+
+</body>
+
+</html>
