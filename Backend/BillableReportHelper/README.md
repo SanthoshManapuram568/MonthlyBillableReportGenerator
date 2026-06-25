@@ -1,148 +1,484 @@
 # Billable Report Helper
 
-Windows Desktop Helper for creating Outlook email drafts with automatic PDF attachment.
+Desktop companion application for the **Monthly Billable Report Generator**.
 
-## Overview
+The helper runs locally on Windows, exposes a lightweight HTTP server, communicates with the hosted website over `localhost`, and creates Microsoft Outlook drafts with automatic PDF attachments.
 
-The Billable Report Helper is a lightweight Java application that:
-- Listens on `http://localhost:8085`
-- Receives multipart form data from the website frontend
-- Uses Windows COM automation (JACOB) to create Outlook email drafts
-- Automatically attaches PDF files
-- Displays the draft in Outlook (without sending)
-- Cleans up temporary files
+---
 
-## Architecture
+# Overview
+
+The Desktop Helper is responsible for:
+
+- Running a local HTTP server (`127.0.0.1:8085`)
+- Receiving requests from the hosted website
+- Creating Outlook drafts using Microsoft Outlook Desktop
+- Attaching uploaded PDF timesheets
+- Opening the draft for user review
+- Returning success/failure responses
+
+---
+
+# Technology Stack
+
+| Technology | Purpose |
+|------------|---------|
+| Java 17 | Desktop Application |
+| Maven | Build Tool |
+| Embedded HttpServer | Local REST API |
+| JACOB | Outlook COM Automation |
+| SLF4J | Logging |
+| Logback | Logging Configuration |
+
+---
+
+# Project Structure
 
 ```
-src/main/java/com/srm/billable/
-├── HelperApplication.java       # Entry point
-├── config/
-│   └── AppConfig.java           # Configuration constants
-├── http/
-│   ├── HttpServer.java          # Embedded HTTP server
-│   ├── HealthHandler.java       # GET /health endpoint
-│   └── DraftHandler.java        # POST /api/outlook/draft endpoint
-├── outlook/
-│   └── OutlookService.java      # Outlook COM automation
-├── tray/
-│   └── TrayManager.java         # System tray integration
-├── util/
-│   └── MultipartParser.java     # Multipart form data parsing
-└── dto/
-    ├── ApiResponse.java         # API response wrapper
-    ├── HealthResponse.java      # Health check response
-    └── DraftRequest.java        # Draft request DTO
+BillableReportHelper
+│
+├── src
+│   └── main
+│       ├── java
+│       │   └── com.srm.billable
+│       │       ├── HelperApplication.java
+│       │       ├── config
+│       │       ├── dto
+│       │       ├── http
+│       │       ├── outlook
+│       │       ├── tray
+│       │       └── util
+│       │
+│       └── resources
+│           ├── application.properties
+│           ├── logback.xml
+│           └── icon.ico
+│
+├── target
+│
+├── pom.xml
+│
+└── README.md
 ```
 
-## Requirements
+---
 
-- Java 17 or higher
-- Maven 3.6+
-- Microsoft Outlook Desktop (installed and registered)
-- Windows OS
+# Prerequisites
 
-## Building
+Before building, ensure the following are installed:
 
-```bash
-cd BillableReportHelper
+- Java 17+
+- Maven 3.8+
+- Microsoft Outlook Desktop (Classic Outlook)
+- Windows 10 / Windows 11
+
+Verify installation:
+
+```cmd
+java -version
+```
+
+```cmd
+mvn -version
+```
+
+```cmd
+jpackage --version
+```
+
+---
+
+# Running from IntelliJ
+
+Run
+
+```
+HelperApplication.java
+```
+
+or
+
+```
+Run → HelperApplication
+```
+
+Expected output:
+
+- HTTP Server starts
+- System Tray icon appears
+- Outlook detected
+- Port 8085 listening
+
+---
+
+# Build Project
+
+Open terminal inside
+
+```
+BillableReportHelper
+```
+
+Run
+
+```cmd
 mvn clean package
 ```
 
-This generates `target/BillableReportHelper.jar`
+Expected output
 
-## Running
-
-```bash
-java -jar BillableReportHelper.jar
+```
+BUILD SUCCESS
 ```
 
-The helper will:
-1. Check Outlook availability
-2. Start HTTP server on port 8085
-3. Initialize system tray icon
-4. Accept requests from the frontend
+Generated files
 
-## API Endpoints
+```
+target/
 
-### Health Check
+BillableReportHelper.jar
+
+jacob-1.21-x64.dll
+```
+
+---
+
+# Package MSI
+
+## Install WiX Toolset
+
+Download and install WiX Toolset v3.x.
+
+Verify installation
+
+```cmd
+candle.exe
+```
+
+```cmd
+light.exe
+```
+
+Both commands should execute without errors.
+
+---
+
+## Generate MSI
+
+Navigate to project root
+
+```cmd
+cd D:\MonthlyBillableReportGenerator\BillableReportHelper
+```
+
+Run
+
+```cmd
+jpackage ^
+--type msi ^
+--name BillableReportHelper ^
+--input target ^
+--main-jar BillableReportHelper.jar ^
+--main-class com.srm.billable.HelperApplication ^
+--java-options "-Djacob.dll.path=$APPDIR\jacob-1.21-x64.dll" ^
+--icon src\main\resources\icon.ico ^
+--win-shortcut ^
+--win-menu ^
+--win-dir-chooser ^
+--win-per-user-install ^
+--vendor "SRM Tech" ^
+--app-version 1.0.0
+```
+
+Output
+
+```
+BillableReportHelper-1.0.0.msi
+```
+
+---
+
+# Install Helper
+
+Double-click
+
+```
+BillableReportHelper-1.0.0.msi
+```
+
+Follow the installation wizard.
+
+Default installation path
+
+```
+C:\Users\<username>\BillableReportHelper
+```
+
+(or the location selected during installation)
+
+---
+
+# Verify Installation
+
+Start the application.
+
+Expected behaviour
+
+- System Tray icon appears
+- Helper starts silently
+- HTTP Server starts
+- Outlook detection completes
+
+---
+
+# Verify Helper is Running
+
+## Option 1 - Browser
+
+Open
+
+```
+http://127.0.0.1:8085/health
+```
+
+Expected response
+
+```json
+{
+  "status":"UP",
+  "version":"1.0.0"
+}
+```
+
+---
+
+## Option 2 - Command Prompt
+
+```cmd
+netstat -ano | findstr :8085
+```
+
+Expected
+
+```
+TCP 127.0.0.1:8085 LISTENING
+```
+
+---
+
+## Option 3 - Task Manager
+
+Open
+
+```
+Task Manager
+```
+
+Look for
+
+```
+BillableReportHelper.exe
+```
+
+Status
+
+```
+Running
+```
+
+---
+
+## Option 4 - PowerShell
+
+```powershell
+Get-Process | findstr BillableReportHelper
+```
+
+---
+
+# API Endpoints
+
+## Health Check
+
 ```
 GET /health
 ```
 
-Response:
+Response
+
 ```json
 {
-  "status": "UP",
-  "version": "1.0.0"
+  "status":"UP",
+  "version":"1.0.0"
 }
 ```
 
-### Create Outlook Draft
+---
+
+## Create Outlook Draft
+
 ```
 POST /api/outlook/draft
-Content-Type: multipart/form-data
 ```
 
-Fields:
-- `recipient` (required): Recipient email address
-- `cc` (optional): CC email address
-- `subject` (required): Email subject
-- `htmlBody` (required): Email body in HTML format
-- `attachments` (required): PDF files (1 or more)
+Consumes
 
-Response (Success):
-```json
-{
-  "success": true,
-  "message": "Outlook draft created successfully"
-}
+```
+multipart/form-data
 ```
 
-Response (Error):
-```json
-{
-  "success": false,
-  "error": "Error message here"
-}
+Fields
+
+- recipient
+- cc
+- subject
+- htmlBody
+- attachments
+
+---
+
+# Logs
+
+Location
+
+```
+%temp%\billable-helper-logs\
 ```
 
-## Features
+Open logs
 
-- **Lightweight**: Uses embedded HttpServer, minimal dependencies
-- **COM Automation**: Direct Outlook integration via JACOB
-- **Multipart Parser**: Custom parser for form data without external dependencies
-- **Temporary Files**: Uploads stored in Windows temp directory, cleaned after use
-- **System Tray**: Runs in background with system tray icon
-- **Retry Logic**: 3 attempts with 500ms delay for COM operations
-- **Logging**: SLF4J + Logback with file rotation
-- **CORS Support**: Allows requests from any origin
+```cmd
+explorer %temp%\billable-helper-logs
+```
 
-## Dependencies
+---
 
-- **Lombok**: Code generation for getters/setters/constructors
-- **JACOB**: Windows COM automation
-- **SLF4J/Logback**: Logging
-- **Gson**: JSON serialization
+# Troubleshooting
 
-## Future Enhancements
+## Helper not running
 
-The architecture supports:
-- Auto-download from OpenAir
-- Silent updates
-- Multiple Outlook profiles
-- Outlook signature detection
-- Scheduled draft creation
-- Dashboard UI
-- Configuration file support
+Verify
 
-## Limitations
+```cmd
+java -version
+```
 
-- Windows only (due to COM automation)
-- Requires Outlook Desktop (not Outlook Web Access)
-- Requires Outlook to be registered on the system
-- No persistent storage or database
+---
 
-## License
+Verify
 
-Internal SRM Tool
+```cmd
+netstat -ano | findstr :8085
+```
+
+---
+
+## Port already in use
+
+Check
+
+```cmd
+netstat -ano | findstr :8085
+```
+
+Kill process
+
+```cmd
+taskkill /PID <PID> /F
+```
+
+Restart helper.
+
+---
+
+## Outlook not detected
+
+Ensure Microsoft Outlook Desktop (Classic Outlook) is installed.
+
+Restart the helper.
+
+---
+
+## Health endpoint unavailable
+
+Open
+
+```
+http://127.0.0.1:8085/health
+```
+
+If unavailable
+
+- Helper not running
+- Firewall blocking localhost
+- Port conflict
+
+---
+
+# Development Workflow
+
+```
+Modify Source Code
+
+↓
+
+Run from IntelliJ
+
+↓
+
+Test Outlook Draft
+
+↓
+
+mvn clean package
+
+↓
+
+Generate MSI using jpackage
+
+↓
+
+Install MSI
+
+↓
+
+Test on Clean Machine
+```
+
+---
+
+# Release Checklist
+
+- Build successful
+- Health endpoint working
+- Outlook draft opens
+- PDF attachments working
+- Logs verified
+- MSI generated
+- Installation tested
+- Uninstallation tested
+
+---
+
+# Versioning
+
+Current Version
+
+```
+1.0.0
+```
+
+Future versions should update
+
+- pom.xml
+- jpackage command
+- Health endpoint version
+- README
+
+---
+
+# License
+
+Internal SRM Utility
+
+Copyright © 2026 Santhosh Kumar Manapuram
